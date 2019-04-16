@@ -11,3 +11,5 @@ obj/
 *.userprefs
 # OS generated
 .DS_Store
+# This file contains our API key
+ARCoreProjectSettings.json
