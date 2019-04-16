@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 // <copyright file="AnchorController.cs" company="Google">
 //
 // Copyright 2018 Google Inc. All Rights Reserved.
@@ -140,8 +140,38 @@ namespace GoogleARCore.Examples.CloudAnchors
                 CmdSetCloudAnchorId(result.Anchor.CloudId);
 
                 m_CloudAnchorsExampleController.OnAnchorHosted(true, result.Response.ToString());
+
+                // save the anchor in our database
+                // TODO: determine the app-anchor type here
+                _PostAnchor(result.Anchor.CloudId);
             });
 #endif
+        }
+
+        void _PostAnchor(string anchorId, string anchorType = "default")
+        {
+            StartCoroutine(_PostAnchorCoroutine(anchorId, anchorType));
+        }
+
+        static private System.Collections.IEnumerator _PostAnchorCoroutine(string anchorId, string anchorType)
+        {
+            string jsonData = string.Format("{{\"anchorId\":\"{0}\",\"anchorType\":\"{1}\"}}", anchorId, anchorType);
+            string serverUrl = "http://localhost:3000/api/anchors";
+            using (UnityWebRequest request = UnityWebRequest.Put(serverUrl, jsonData))
+            {
+                request.method = UnityWebRequest.kHttpVerbPOST;
+                request.SetRequestHeader("Content-Type", "application/json");
+                request.SetRequestHeader("Accept", "application/json");
+                yield return request.SendWebRequest();
+                if (!request.isNetworkError && request.responseCode == 200)
+                {
+                    Debug.LogFormat("Saved anchor into database {0}:{1}", anchorType, anchorId);
+                }
+                else
+                {
+                    Debug.LogWarningFormat("Failed to save anchor into database {0}:{1}", anchorType, anchorId);
+                }
+            }
         }
 
         /// <summary>
